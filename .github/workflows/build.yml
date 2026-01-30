@@ -35,6 +35,19 @@ jobs:
           CODE_SIGNING_ALLOWED=NO \
           build
 
+    - name: Ad-hoc sign the app
+      run: |
+        cd japan-car-calc
+        APP_PATH="build/Build/Products/Release/japan-car-calc.app"
+        # Sign all frameworks and helpers first
+        find "$APP_PATH" -name "*.framework" -o -name "*.dylib" | while read framework; do
+          codesign --force --deep --sign - "$framework" || true
+        done
+        # Sign the main app bundle
+        codesign --force --deep --sign - "$APP_PATH"
+        # Verify signature
+        codesign --verify --verbose "$APP_PATH"
+
     - name: Create DMG
       run: |
         cd japan-car-calc
