@@ -1,0 +1,81 @@
+import SwiftUI
+
+struct ContentView: View {
+    @ObservedObject var model: CalculatorModel
+
+    var body: some View {
+        VStack(spacing: 12) {
+            Text("🚗 Калькулятор авто")
+                .font(.headline)
+                .padding(.top, 8)
+            
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Стоимость в тысячах йен:")
+                    .font(.caption)
+                TextField("", text: $model.priceYen)
+                    .textFieldStyle(.roundedBorder)
+                    .onChange(of: model.priceYen) { _ in
+                        model.calculate()
+                    }
+                
+                Text("Доставка (тыс. йен):")
+                    .font(.caption)
+                TextField("", text: $model.deliveryCost)
+                    .textFieldStyle(.roundedBorder)
+                    .onChange(of: model.deliveryCost) { _ in
+                        model.calculate()
+                    }
+            }
+            
+            if model.isLoading {
+                ProgressView("Загрузка курса...")
+                    .font(.caption)
+            } else if !model.error.isEmpty {
+                Text(model.error)
+                    .font(.caption)
+                    .foregroundColor(.red)
+            } else if let rate = model.exchangeRate {
+                Text("Курс: 1¥ = €\(String(format: "%.6f", rate))")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            if !model.finalPrice.isEmpty {
+                Divider()
+                VStack(spacing: 4) {
+                    if !model.basePrice.isEmpty {
+                        Text("Стоимость + \(model.deliveryCost) тыс. йен:")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text("€\(model.basePrice)")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                        Divider()
+                            .padding(.vertical, 4)
+                    }
+                    Text("Итоговая стоимость:")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text("€\(model.finalPrice)")
+                        .font(.title2)
+                        .fontWeight(.bold)
+                    
+                    Button(action: {
+                        model.copyToClipboard()
+                    }) {
+                        HStack {
+                            Image(systemName: model.copied ? "checkmark.circle.fill" : "doc.on.doc")
+                            Text(model.copied ? "Скопировано!" : "Копировать")
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                }
+            }
+        }
+        .padding()
+        .frame(width: 200)
+        .onAppear {
+            model.fetchExchangeRate()
+        }
+    }
+}

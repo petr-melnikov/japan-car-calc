@@ -1,0 +1,112 @@
+name: Build macOS App
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+
+    - name: Show Xcode version
+      run: xcodebuild -version
+
+    - name: Build app
+      run: |
+        cd japan-car-calc
+        xcodebuild -project japan-car-calc.xcodeproj \
+          -scheme japan-car-calc \
+          -configuration Release \
+          -derivedDataPath build \
+          CODE_SIGN_IDENTITY="-" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO \
+          build
+
+    - name: Create DMG
+      run: |
+        cd japan-car-calc
+        APP_PATH="build/Build/Products/Release/japan-car-calc.app"
+        
+        # Create a folder for DMG contents
+        mkdir -p dmg_contents
+        cp -R "$APP_PATH" dmg_contents/
+        
+        # Create DMG
+        hdiutil create -volname "Japan Car Calculator" \
+          -srcfolder dmg_contents \
+          -ov -format UDZO \
+          "Japan-Car-Calculator.dmg"
+
+    - name: Create ZIP archive
+      run: |
+        cd japan-car-calc
+        APP_PATH="build/Build/Products/Release/japan-car-calc.app"
+        ditto -c -k --keepParent "$APP_PATH" "Japan-Car-Calculator.zip"
+
+    - name: Upload DMG artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Japan-Car-Calculator-DMG
+        path: japan-car-calc/Japan-Car-Calculator.dmg
+        retention-days: 30
+
+    - name: Upload ZIP artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Japan-Car-Calculator-ZIP
+        path: japan-car-calc/Japan-Car-Calculator.zip
+        retention-days: 30
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    
+    steps:
+    - name: Download DMG artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: Japan-Car-Calculator-DMG
+
+    - name: Download ZIP artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: Japan-Car-Calculator-ZIP
+
+    - name: Get current date
+      id: date
+      run: echo "date=$(date +'%Y-%m-%d_%H-%M-%S')" >> $GITHUB_OUTPUT
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v2
+      with:
+        tag_name: build-${{ steps.date.outputs.date }}
+        name: Build ${{ steps.date.outputs.date }}
+        body: |
+          Автоматическая сборка Japan Car Calculator
+          
+          **Скачать:**
+          - 📦 DMG (рекомендуется для macOS)
+          - 🗜️ ZIP архив
+          
+          Коммит: ${{ github.sha }}
+        files: |
+          Japan-Car-Calculator.dmg
+          Japan-Car-Calculator.zip
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
