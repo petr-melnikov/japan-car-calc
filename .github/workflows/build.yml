@@ -57,6 +57,9 @@ jobs:
         mkdir -p dmg_contents
         cp -R "$APP_PATH" dmg_contents/
         
+        # Add symlink to Applications folder
+        ln -s /Applications dmg_contents/Applications
+        
         # Create DMG
         hdiutil create -volname "Japan Car Calculator" \
           -srcfolder dmg_contents \
