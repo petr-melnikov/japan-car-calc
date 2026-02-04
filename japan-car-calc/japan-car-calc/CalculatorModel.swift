@@ -14,6 +14,7 @@ class CalculatorModel: ObservableObject {
     @Published var basePriceWithMarkup: String = ""
     @Published var finalPriceWithMarkup: String = ""
     @Published var copied: Bool = false
+    @Published var copiedWithMarkup: Bool = false
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -111,6 +112,17 @@ class CalculatorModel: ObservableObject {
         copied = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
             self?.copied = false
+        }
+    }
+    
+    func copyWithMarkupToClipboard() {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(finalPriceWithMarkup, forType: .string)
+        
+        copiedWithMarkup = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+            self?.copiedWithMarkup = false
         }
     }
 }

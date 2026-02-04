@@ -65,6 +65,14 @@ struct ContentView: View {
                         Text("€\(model.finalPrice)")
                             .font(.headline)
                             .fontWeight(.bold)
+                        
+                        Button(action: {
+                            model.copyToClipboard()
+                        }) {
+                            Image(systemName: model.copied ? "checkmark.circle.fill" : "doc.on.doc")
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
                     }
                     .frame(maxWidth: .infinity)
                     
@@ -82,19 +90,17 @@ struct ContentView: View {
                             .font(.headline)
                             .fontWeight(.bold)
                             .foregroundColor(.blue)
+                        
+                        Button(action: {
+                            model.copyWithMarkupToClipboard()
+                        }) {
+                            Image(systemName: model.copiedWithMarkup ? "checkmark.circle.fill" : "doc.on.doc")
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
                     }
                     .frame(maxWidth: .infinity)
                 }
-                
-                Button(action: {
-                    model.copyToClipboard()
-                }) {
-                    HStack {
-                        Image(systemName: model.copied ? "checkmark.circle.fill" : "doc.on.doc")
-                        Text(model.copied ? "Скопировано!" : "Копировать")
-                    }
-                }
-                .buttonStyle(.bordered)
             }
         }
         .padding()
