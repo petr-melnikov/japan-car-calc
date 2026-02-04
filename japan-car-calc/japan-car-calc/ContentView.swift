@@ -81,6 +81,20 @@ struct ContentView: View {
                         Text("+\(model.markupPercent)%")
                             .font(.caption)
                             .fontWeight(.semibold)
+                        if !model.priceYenWithMarkup.isEmpty {
+                            HStack(spacing: 2) {
+                                Text("¥\(model.priceYenWithMarkup)")
+                                    .font(.caption)
+                                    .foregroundColor(.orange)
+                                Button(action: {
+                                    model.copyYenWithMarkupToClipboard()
+                                }) {
+                                    Image(systemName: model.copiedYenWithMarkup ? "checkmark.circle.fill" : "doc.on.doc")
+                                        .font(.system(size: 9))
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
                         if !model.basePriceWithMarkup.isEmpty {
                             Text("€\(model.basePriceWithMarkup)")
                                 .font(.caption)

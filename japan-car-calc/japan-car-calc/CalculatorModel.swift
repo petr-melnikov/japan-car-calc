@@ -13,8 +13,10 @@ class CalculatorModel: ObservableObject {
     @Published var finalPrice: String = ""
     @Published var basePriceWithMarkup: String = ""
     @Published var finalPriceWithMarkup: String = ""
+    @Published var priceYenWithMarkup: String = ""
     @Published var copied: Bool = false
     @Published var copiedWithMarkup: Bool = false
+    @Published var copiedYenWithMarkup: Bool = false
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -81,6 +83,7 @@ class CalculatorModel: ObservableObject {
             basePrice = ""
             finalPriceWithMarkup = ""
             basePriceWithMarkup = ""
+            priceYenWithMarkup = ""
             return
         }
         
@@ -96,6 +99,7 @@ class CalculatorModel: ObservableObject {
         
         // Расчёт с наценкой
         let yenPriceWithMarkup = yenPrice * (1 + markup / 100)
+        priceYenWithMarkup = String(format: "%.0f", yenPriceWithMarkup)
         let yenTotalWithMarkup = (yenPriceWithMarkup + delivery) * 1000
         let euroFromYenWithMarkup = yenTotalWithMarkup * rate
         basePriceWithMarkup = String(format: "%.2f", euroFromYenWithMarkup)
@@ -123,6 +127,17 @@ class CalculatorModel: ObservableObject {
         copiedWithMarkup = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
             self?.copiedWithMarkup = false
+        }
+    }
+    
+    func copyYenWithMarkupToClipboard() {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(priceYenWithMarkup, forType: .string)
+        
+        copiedYenWithMarkup = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+            self?.copiedYenWithMarkup = false
         }
     }
 }
