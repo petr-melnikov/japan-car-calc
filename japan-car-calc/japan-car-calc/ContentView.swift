@@ -25,6 +25,14 @@ struct ContentView: View {
                     .onChange(of: model.deliveryCost) { _ in
                         model.calculate()
                     }
+                
+                Text("Наценка (%):")
+                    .font(.caption)
+                TextField("", text: $model.markupPercent)
+                    .textFieldStyle(.roundedBorder)
+                    .onChange(of: model.markupPercent) { _ in
+                        model.calculate()
+                    }
             }
             
             if model.isLoading {
@@ -42,34 +50,51 @@ struct ContentView: View {
             
             if !model.finalPrice.isEmpty {
                 Divider()
-                VStack(spacing: 4) {
-                    if !model.basePrice.isEmpty {
-                        Text("Стоимость + \(model.deliveryCost) тыс. йен:")
+                
+                HStack(alignment: .top, spacing: 16) {
+                    // Оригинальная стоимость
+                    VStack(spacing: 4) {
+                        Text("Оригинал")
                             .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text("€\(model.basePrice)")
-                            .font(.subheadline)
                             .fontWeight(.semibold)
-                        Divider()
-                            .padding(.vertical, 4)
-                    }
-                    Text("Итоговая стоимость:")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Text("€\(model.finalPrice)")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                    
-                    Button(action: {
-                        model.copyToClipboard()
-                    }) {
-                        HStack {
-                            Image(systemName: model.copied ? "checkmark.circle.fill" : "doc.on.doc")
-                            Text(model.copied ? "Скопировано!" : "Копировать")
+                        if !model.basePrice.isEmpty {
+                            Text("€\(model.basePrice)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
                         }
+                        Text("€\(model.finalPrice)")
+                            .font(.headline)
+                            .fontWeight(.bold)
                     }
-                    .buttonStyle(.bordered)
+                    .frame(maxWidth: .infinity)
+                    
+                    // С наценкой
+                    VStack(spacing: 4) {
+                        Text("+\(model.markupPercent)%")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                        if !model.basePriceWithMarkup.isEmpty {
+                            Text("€\(model.basePriceWithMarkup)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        Text("€\(model.finalPriceWithMarkup)")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .foregroundColor(.blue)
+                    }
+                    .frame(maxWidth: .infinity)
                 }
+                
+                Button(action: {
+                    model.copyToClipboard()
+                }) {
+                    HStack {
+                        Image(systemName: model.copied ? "checkmark.circle.fill" : "doc.on.doc")
+                        Text(model.copied ? "Скопировано!" : "Копировать")
+                    }
+                }
+                .buttonStyle(.bordered)
             }
         }
         .padding()

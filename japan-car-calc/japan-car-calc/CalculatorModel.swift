@@ -5,11 +5,14 @@ import AppKit
 class CalculatorModel: ObservableObject {
     @Published var priceYen: String = ""
     @Published var deliveryCost: String = "500"
+    @Published var markupPercent: String = "10"
     @Published var exchangeRate: Double?
     @Published var isLoading: Bool = true
     @Published var error: String = ""
     @Published var basePrice: String = ""
     @Published var finalPrice: String = ""
+    @Published var basePriceWithMarkup: String = ""
+    @Published var finalPriceWithMarkup: String = ""
     @Published var copied: Bool = false
     
     private var cancellables = Set<AnyCancellable>()
@@ -75,8 +78,12 @@ class CalculatorModel: ObservableObject {
               let delivery = Double(deliveryCost.replacingOccurrences(of: ",", with: "")) else {
             finalPrice = ""
             basePrice = ""
+            finalPriceWithMarkup = ""
+            basePriceWithMarkup = ""
             return
         }
+        
+        let markup = Double(markupPercent.replacingOccurrences(of: ",", with: "")) ?? 0
         
         // Формула: (стоимость в тысячах йен + доставка) * 1000 * курс * 1.3 + 550
         let yenTotal = (yenPrice + delivery) * 1000
@@ -85,6 +92,15 @@ class CalculatorModel: ObservableObject {
         
         let total = euroFromYen * 1.3 + 550
         finalPrice = String(format: "%.2f", total)
+        
+        // Расчёт с наценкой
+        let yenPriceWithMarkup = yenPrice * (1 + markup / 100)
+        let yenTotalWithMarkup = (yenPriceWithMarkup + delivery) * 1000
+        let euroFromYenWithMarkup = yenTotalWithMarkup * rate
+        basePriceWithMarkup = String(format: "%.2f", euroFromYenWithMarkup)
+        
+        let totalWithMarkup = euroFromYenWithMarkup * 1.3 + 550
+        finalPriceWithMarkup = String(format: "%.2f", totalWithMarkup)
     }
     
     func copyToClipboard() {
