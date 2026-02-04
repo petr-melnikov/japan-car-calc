@@ -18,19 +18,19 @@ struct ContentView: View {
                         model.calculate()
                     }
                 
-                Text("Доставка (тыс. йен):")
-                    .font(.caption)
-                TextField("", text: $model.deliveryCost)
-                    .textFieldStyle(.roundedBorder)
-                    .onChange(of: model.deliveryCost) { _ in
-                        model.calculate()
-                    }
-                
                 Text("Наценка (%):")
                     .font(.caption)
                 TextField("", text: $model.markupPercent)
                     .textFieldStyle(.roundedBorder)
                     .onChange(of: model.markupPercent) { _ in
+                        model.calculate()
+                    }
+                
+                Text("Доставка (тыс. йен):")
+                    .font(.caption)
+                TextField("", text: $model.deliveryCost)
+                    .textFieldStyle(.roundedBorder)
+                    .onChange(of: model.deliveryCost) { _ in
                         model.calculate()
                     }
             }
